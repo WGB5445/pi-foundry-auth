@@ -152,13 +152,14 @@ Then configure npm Trusted Publishing for GitHub Actions with:
 - Workflow filename: `publish.yml`
 - Allowed action: `npm publish`
 
-You can configure it in the npm package settings, or with npm 11.15+:
+The recommended path is the npm web UI: open the package's **Settings → Trusted publishing** page and create a GitHub Actions publisher with the fields above. The package is already present on npm, so this configuration is now available.
+
+The CLI alternative requires npm CLI 11.15.0 or newer. If `npm trust` prints `Unknown command: "trust"`, your npm CLI is too old; upgrade npm or use the web UI:
 
 ```sh
-npm trust github pi-foundry-auth \
-  --repo WGB5445/pi-foundry-auth \
-  --file publish.yml \
-  --allow-publish
+npm --version
+npm install --global npm@^11.15.0
+npm trust github pi-foundry-auth --repo WGB5445/pi-foundry-auth --file publish.yml --allow-publish
 ```
 
 After that bootstrap release, manually run the `Publish Package` workflow from the Actions tab. It requests only the GitHub OIDC `id-token: write` permission and has no `NPM_TOKEN` secret. npm generates provenance automatically for trusted publishes.
