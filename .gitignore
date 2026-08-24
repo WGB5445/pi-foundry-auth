@@ -8,3 +8,4 @@ work/
 !.env.example
 pnpm-debug.log*
 npm-debug.log*
+*.tgz
