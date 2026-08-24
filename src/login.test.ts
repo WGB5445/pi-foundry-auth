@@ -41,16 +41,25 @@ describe("Azure Foundry login", () => {
     expect(credentials.access).not.toContain("eyJ");
   });
 
-  it("uses the fixed Azure CLI login dependency when selected", async () => {
-    const runCliLogin = vi.fn(async () => undefined);
-    const ui = callbacks("cli");
+  it("uses direct Azure Identity device-code login when selected", async () => {
+    const loginWithDeviceCode = vi.fn(async (deviceCallbacks: {
+      onDeviceCode: (params: { userCode: string; verificationUri: string }) => void;
+    }) => {
+      deviceCallbacks.onDeviceCode({
+        userCode: "ABCD-EFGH",
+        verificationUri: "https://microsoft.com/devicelogin",
+      });
+    });
+    const ui = callbacks("device-code");
     const oauth = createAzureFoundryOAuth(config, {
-      tokenProvider: { getToken: vi.fn(async () => "token") },
-      runCliLogin,
+      tokenProvider: { getToken: vi.fn(async () => "token"), loginWithDeviceCode },
     });
 
     await oauth.login(ui);
 
-    expect(runCliLogin).toHaveBeenCalledWith(config.tenantId, expect.objectContaining({ onDeviceCode: expect.any(Function) }));
+    expect(loginWithDeviceCode).toHaveBeenCalledWith(
+      expect.objectContaining({ onDeviceCode: expect.any(Function) }),
+      undefined,
+    );
   });
 });

@@ -1,13 +1,12 @@
 import type { OAuthCredentials, OAuthLoginCallbacks } from "@earendil-works/pi-ai/compat";
 
-import { runAzureCliLogin } from "./azure-cli.js";
 import type { FoundryConfig } from "./config.js";
 import { LOGIN_MARKER } from "./config.js";
 import { markerExpiresAt, type TokenProvider } from "./credential.js";
 
 const LOGIN_METHODS = [
   { id: "existing", label: "Use an existing Azure credential" },
-  { id: "cli", label: "Sign in with Azure CLI device code" },
+  { id: "device-code", label: "Sign in with Microsoft Entra device code" },
 ];
 
 export function createLoginMarker(now = Date.now()): OAuthCredentials {
@@ -24,7 +23,6 @@ export function isLoginMarker(credentials: OAuthCredentials): boolean {
 
 export interface LoginDependencies {
   tokenProvider: TokenProvider;
-  runCliLogin?: typeof runAzureCliLogin;
 }
 
 async function verifyCredential(callbacks: OAuthLoginCallbacks, tokenProvider: TokenProvider): Promise<void> {
@@ -41,14 +39,17 @@ export function createAzureFoundryOAuth(config: FoundryConfig, dependencies: Log
       const method = await callbacks.onSelect({ message: "Azure Foundry sign-in method:", options: LOGIN_METHODS });
       if (!method) throw new Error("Azure Foundry login cancelled");
 
-      if (method === "cli") {
-        const cliCallbacks = {
-          onDeviceCode: callbacks.onDeviceCode,
-          ...(callbacks.onProgress ? { onProgress: callbacks.onProgress } : {}),
-        };
-        await (dependencies.runCliLogin ?? runAzureCliLogin)(config.tenantId, {
-          ...cliCallbacks,
-        });
+      if (method === "device-code") {
+        if (!dependencies.tokenProvider.loginWithDeviceCode) {
+          throw new Error("Direct Microsoft Entra device-code login is unavailable");
+        }
+        await dependencies.tokenProvider.loginWithDeviceCode(
+          {
+            onDeviceCode: callbacks.onDeviceCode,
+            ...(callbacks.onProgress ? { onProgress: callbacks.onProgress } : {}),
+          },
+          callbacks.signal,
+        );
       }
 
       await verifyCredential(callbacks, dependencies.tokenProvider);

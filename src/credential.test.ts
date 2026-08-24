@@ -46,4 +46,28 @@ describe("token provider", () => {
     await expect(provider.getToken(controller.signal)).rejects.toThrow(/aborted/iu);
     expect(getToken).not.toHaveBeenCalled();
   });
+
+  it("passes the device code directly to the login callback and keeps the credential in memory", async () => {
+    resetCredentialCache();
+    const getToken = vi.fn(async () => ({ token: "device-token", expiresOnTimestamp: Date.now() + 60_000 }));
+    const deviceCodes: Array<{ userCode: string; verificationUri: string }> = [];
+    const provider = createTokenProvider(
+      config,
+      () => ({ getToken: vi.fn() }),
+      (_config, callbacks) => {
+        callbacks.onDeviceCode({
+          userCode: "ABCD-EFGH",
+          verificationUri: "https://microsoft.com/devicelogin",
+        });
+        return { getToken };
+      },
+    );
+
+    await provider.loginWithDeviceCode?.({ onDeviceCode: (info) => deviceCodes.push(info) });
+    await expect(provider.getToken()).resolves.toBe("device-token");
+    expect(deviceCodes).toEqual([
+      { userCode: "ABCD-EFGH", verificationUri: "https://microsoft.com/devicelogin" },
+    ]);
+    expect(getToken).toHaveBeenCalledTimes(2);
+  });
 });

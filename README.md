@@ -15,7 +15,7 @@ This package adds an `azure-foundry` provider that uses the Azure OpenAI-compati
 - Access tokens are acquired through `@azure/identity`, used in memory for requests, and never written to pi's `auth.json`, printed, or included in diagnostics by this plugin. Any persistence belongs to the selected credential provider (for example, Azure CLI), not this plugin.
 - `/login azure-foundry` stores only a non-secret marker so pi can manage the provider. `/logout azure-foundry` removes that marker.
 - The default credential chain is used: environment/workload identity, managed identity, Azure CLI, Azure Developer CLI, and other supported local developer credentials.
-- The optional Azure CLI login uses fixed arguments and `shell: false`; no user-provided shell command is executed.
+- The Pi device-code flow uses `@azure/identity` directly; it never starts Azure CLI or parses terminal output.
 - Endpoint validation requires HTTPS and an Azure Foundry/Azure OpenAI hostname by default. Arbitrary endpoints require an explicit opt-in.
 
 ## Requirements
@@ -88,7 +88,9 @@ Start pi with the extension, then use:
 /login azure-foundry
 ```
 
-Choose “Use an existing Azure credential” if you have already authenticated with Azure CLI, Azure Developer CLI, VS Code, environment credentials, or managed identity. Choose “Sign in with Azure CLI device code” when you want the plugin to run a fixed `az login --use-device-code` flow. The Azure CLI must be installed for that option.
+Choose “Use an existing Azure credential” if you have already authenticated with Azure CLI, Azure Developer CLI, VS Code, environment credentials, or managed identity. Choose “Sign in with Microsoft Entra device code” to run Azure Identity's direct device-code flow inside Pi. This flow displays the verification URL and user code through Pi's login dialog; it does not start `az` or parse CLI output.
+
+If you prefer Azure CLI's own credential cache, run `az login --use-device-code` in a separate terminal first, then choose “Use an existing Azure credential”. This is the same external-credential pattern used by other Azure Foundry Pi extensions.
 
 The plugin verifies that it can request the configured Entra scope. The access token itself remains owned by the Azure identity library and is not copied into pi storage.
 
@@ -178,7 +180,7 @@ After that bootstrap release, manually run the `Publish Package` workflow from t
 
 - Model discovery is intentionally not automatic; model IDs are deployment-specific and are configured explicitly.
 - The plugin targets Foundry's OpenAI v1-compatible model route, not the Foundry Agent Service project API.
-- Azure CLI device login relies on the Azure CLI's own token cache; the plugin does not manage or export that cache.
+- Direct device-code login keeps the Azure Identity credential in memory for the current Pi process; Pi auth storage contains only the non-secret login marker. Existing Azure CLI credentials are read through `DefaultAzureCredential`.
 
 ## License
 

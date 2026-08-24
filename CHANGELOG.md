@@ -4,7 +4,7 @@ All notable changes to this project will be documented here.
 
 ## [0.1.1]
 
-- Hardened Azure CLI device-code login for hidden `only_show_errors` settings, ANSI-colored output, split lines, flexible message ordering, and both official device-login URLs.
+- Replaced fragile Azure CLI device-code output parsing with Azure Identity's direct `DeviceCodeCredential` callback flow; existing credentials still use `DefaultAzureCredential`.
 
 ## [Unreleased]
 

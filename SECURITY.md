@@ -20,6 +20,6 @@ Never include access tokens, refresh tokens, API keys, tenant secrets, or privat
 ## Security guarantees and non-goals
 
 - The extension does not persist bearer tokens or API keys.
-- The Azure CLI login path does not invoke a shell and does not accept arbitrary command text.
+- The plugin does not invoke Azure CLI for interactive login or parse its output; existing Azure CLI credentials are consumed through `DefaultAzureCredential`.
 - Network endpoints are restricted to HTTPS Azure hosts unless an explicit custom-endpoint opt-in is set.
 - pi extensions have the same process permissions as pi itself. Only load this extension from a source you trust.
