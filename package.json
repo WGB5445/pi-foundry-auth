@@ -4,10 +4,10 @@
   "description": "Security-first Microsoft Entra ID provider extension for pi and Azure AI Foundry.",
   "license": "MIT",
   "type": "module",
-  "packageManager": "pnpm@11.1.1",
+  "packageManager": "pnpm@11.23.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WGB5445/pi-foundry-auth.git"
+    "url": "https://github.com/WGB5445/pi-foundry-auth"
   },
   "homepage": "https://github.com/WGB5445/pi-foundry-auth",
   "bugs": {

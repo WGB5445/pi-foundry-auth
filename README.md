@@ -117,13 +117,13 @@ The test suite uses fake credentials and local/mocked streams; it does not conta
 
 ## Publish to npm
 
-The package uses pnpm for installation, testing, auditing, packing, and publishing. Publishing is not run automatically on every push.
+The package uses pnpm for installation, testing, auditing, and package preparation. The final repository-based registry publish uses npm's Trusted Publishing and GitHub OIDC; it is not run automatically on every push.
 
-Before the first release, authenticate with npm and verify the account:
+The one-time bootstrap release is interactive. Authenticate with npm and verify the account:
 
 ```sh
-pnpm login
-pnpm whoami
+npm login
+npm whoami
 ```
 
 Review the package contents and then publish the current version:
@@ -132,12 +132,36 @@ Review the package contents and then publish the current version:
 pnpm check
 pnpm audit --prod --audit-level high
 pnpm publish:check
-pnpm publish --access public
+npm publish --access public
 ```
 
-The package version must be incremented before each subsequent release. Do not put npm tokens in the repository, `.npmrc`, test fixtures, or GitHub workflow files.
+The package version must be incremented before each subsequent release. All preparation uses pnpm; the final `npm publish` command is intentional because npm Trusted Publishing authenticates the npm CLI with GitHub OIDC. No npm token is stored in the repository or workflow.
 
-For GitHub Actions publishing, add a repository secret named `NPM_TOKEN`, then manually run the `Publish Package` workflow from the Actions tab. The workflow repeats the checks before publishing and configures the token only on the ephemeral runner.
+For the first release, publish the package once interactively with npm account 2FA. npm requires the package to exist before a Trusted Publisher can be configured:
+
+```sh
+pnpm check
+pnpm publish:check
+npm publish --access public
+```
+
+Then configure npm Trusted Publishing for GitHub Actions with:
+
+- Owner: `WGB5445`
+- Repository: `pi-foundry-auth`
+- Workflow filename: `publish.yml`
+- Allowed action: `npm publish`
+
+You can configure it in the npm package settings, or with npm 11.15+:
+
+```sh
+npm trust github pi-foundry-auth \
+  --repo WGB5445/pi-foundry-auth \
+  --file publish.yml \
+  --allow-publish
+```
+
+After that bootstrap release, manually run the `Publish Package` workflow from the Actions tab. It requests only the GitHub OIDC `id-token: write` permission and has no `NPM_TOKEN` secret. npm generates provenance automatically for trusted publishes.
 
 ## References
 

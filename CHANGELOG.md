@@ -5,5 +5,6 @@ All notable changes to this project will be documented here.
 ## [Unreleased]
 
 - Renamed the npm package and repository to `pi-foundry-auth`; the pi provider id remains `azure-foundry`.
-- Switched dependency installation, checks, auditing, packing, and publishing to pnpm; the package is now configured for intentional public publication.
+- Switched dependency installation, checks, auditing, and package preparation to pnpm; the package is now configured for intentional public publication.
+- Changed repository publishing to npm Trusted Publishing with GitHub OIDC; no `NPM_TOKEN` is required after the one-time bootstrap release.
 - Initial security-first Azure AI Foundry provider extension for pi.

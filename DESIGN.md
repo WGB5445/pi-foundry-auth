@@ -55,6 +55,6 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 - Confirm no credentials, private endpoints, or tenant-specific data are committed.
 - Review GitHub Actions permissions and branch protection.
 - Confirm the intended version, package contents, registry, and npm account before publishing.
-- Keep npm authentication outside the repository; prefer a short-lived or tightly scoped credential for CI.
-- The manual publish workflow re-runs checks and writes the `NPM_TOKEN` only to the ephemeral runner's pnpm config.
+- Keep npm authentication outside the repository; the post-bootstrap workflow uses GitHub OIDC and no npm token.
+- The manual publish workflow re-runs checks and grants only `id-token: write` for the npm Trusted Publisher exchange.
 - Create a tagged release only after a real Azure tenant/model smoke test is performed by the maintainer.
