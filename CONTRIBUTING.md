@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve pi Azure AI Foundry.
+Thanks for helping improve pi Foundry Auth.
 
 ## Before opening a pull request
 

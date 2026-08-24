@@ -16,7 +16,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 1. The extension loads metadata from environment variables or `azure-foundry.json`.
 2. It validates the endpoint, token scope, tenant value, and deployment metadata before registering the provider.
 3. `/login azure-foundry` either verifies the existing `DefaultAzureCredential` chain or runs `az login --use-device-code` with fixed arguments.
-4. pi stores only `pi-azure-foundry:azure-credential` as an OAuth marker in its normal auth storage.
+4. pi stores only `pi-foundry-auth:azure-credential` as an OAuth marker in its normal auth storage.
 5. Before a model request, `@azure/identity` obtains a token for the configured scope.
 6. The token is passed in memory to pi's built-in OpenAI Responses stream implementation and is never logged or persisted by this extension.
 

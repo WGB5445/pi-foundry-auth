@@ -7,7 +7,7 @@ export const COGNITIVE_SERVICES_SCOPE = "https://cognitiveservices.azure.com/.de
 export const ALLOWED_SCOPES = new Set([DEFAULT_SCOPE, COGNITIVE_SERVICES_SCOPE]);
 
 export const DEFAULT_PROVIDER_ID = "azure-foundry";
-export const LOGIN_MARKER = "pi-azure-foundry:azure-credential";
+export const LOGIN_MARKER = "pi-foundry-auth:azure-credential";
 
 const DEFAULT_CONTEXT_WINDOW = 128_000;
 const DEFAULT_MAX_TOKENS = 16_384;

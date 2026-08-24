@@ -1,10 +1,18 @@
 {
-  "name": "pi-azure-foundry",
+  "name": "pi-foundry-auth",
   "version": "0.1.0",
   "private": true,
-  "description": "Security-first Azure AI Foundry Entra ID provider extension for pi.",
+  "description": "Security-first Microsoft Entra ID provider extension for pi and Azure AI Foundry.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WGB5445/pi-foundry-auth.git"
+  },
+  "homepage": "https://github.com/WGB5445/pi-foundry-auth",
+  "bugs": {
+    "url": "https://github.com/WGB5445/pi-foundry-auth/issues"
+  },
   "engines": {
     "node": ">=22"
   },

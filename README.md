@@ -1,6 +1,8 @@
-# pi Azure AI Foundry
+# pi Foundry Auth
 
-Security-first Azure AI Foundry provider extension for [pi](https://pi.dev/).
+Security-first Microsoft Entra ID authentication provider for [pi](https://pi.dev/) and Azure AI Foundry.
+
+The npm package is named `pi-foundry-auth`. It remains private during development and will not be published until a deliberate release is prepared.
 
 This package adds an `azure-foundry` provider that uses the Azure OpenAI-compatible `/openai/v1/` route and Microsoft Entra ID. It is intended for Foundry model deployments that are usable through that route. It does not implement Foundry Agent Service, evaluations, or management APIs.
 
@@ -25,7 +27,7 @@ This package adds an `azure-foundry` provider that uses the Azure OpenAI-compati
 From this repository:
 
 ```text
-cd /path/to/pi-azure-foundry
+cd /path/to/pi-foundry-auth
 npm install
 pi -e ./extensions
 ```
