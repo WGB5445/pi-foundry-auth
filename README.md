@@ -2,7 +2,7 @@
 
 Security-first Microsoft Entra ID authentication provider for [pi](https://pi.dev/) and Azure AI Foundry.
 
-The npm package is named `pi-foundry-auth`. It remains private during development and will not be published until a deliberate release is prepared.
+The npm package is named `pi-foundry-auth` and is configured as a public package. Publishing is intentionally a manual step so a maintainer can review the exact version and tarball first.
 
 This package adds an `azure-foundry` provider that uses the Azure OpenAI-compatible `/openai/v1/` route and Microsoft Entra ID. It is intended for Foundry model deployments that are usable through that route. It does not implement Foundry Agent Service, evaluations, or management APIs.
 
@@ -28,7 +28,7 @@ From this repository:
 
 ```text
 cd /path/to/pi-foundry-auth
-npm install
+pnpm install
 pi -e ./extensions
 ```
 
@@ -107,12 +107,37 @@ For an enterprise gateway or private proxy, you may explicitly opt in with `AZUR
 ## Development
 
 ```sh
-npm install
-npm run check
-npm run pack:check
+pnpm install
+pnpm check
+pnpm pack:check
+pnpm publish:check
 ```
 
 The test suite uses fake credentials and local/mocked streams; it does not contact Azure and does not require an Azure account.
+
+## Publish to npm
+
+The package uses pnpm for installation, testing, auditing, packing, and publishing. Publishing is not run automatically on every push.
+
+Before the first release, authenticate with npm and verify the account:
+
+```sh
+pnpm login
+pnpm whoami
+```
+
+Review the package contents and then publish the current version:
+
+```sh
+pnpm check
+pnpm audit --prod --audit-level high
+pnpm publish:check
+pnpm publish --access public
+```
+
+The package version must be incremented before each subsequent release. Do not put npm tokens in the repository, `.npmrc`, test fixtures, or GitHub workflow files.
+
+For GitHub Actions publishing, add a repository secret named `NPM_TOKEN`, then manually run the `Publish Package` workflow from the Actions tab. The workflow repeats the checks before publishing and configures the token only on the ephemeral runner.
 
 ## References
 

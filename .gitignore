@@ -6,4 +6,5 @@ work/
 .env
 .env.*
 !.env.example
+pnpm-debug.log*
 npm-debug.log*

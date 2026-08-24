@@ -43,10 +43,10 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 
 ## Verification gates
 
-- `npm run typecheck`
-- `npm test` with fake credentials and mocked streams only
-- `npm audit --omit=dev --audit-level=high`
-- `npm pack --dry-run`
+- `pnpm typecheck`
+- `pnpm test` with fake credentials and mocked streams only
+- `pnpm audit --prod --audit-level high`
+- `pnpm pack --dry-run`
 - pi CLI smoke test using an isolated config directory and a fake model; no Azure request
 
 ## Release checklist
@@ -54,5 +54,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 - Review dependency updates and run the full check suite.
 - Confirm no credentials, private endpoints, or tenant-specific data are committed.
 - Review GitHub Actions permissions and branch protection.
-- Replace `private: true` only when an intentional package publication is planned.
+- Confirm the intended version, package contents, registry, and npm account before publishing.
+- Keep npm authentication outside the repository; prefer a short-lived or tightly scoped credential for CI.
+- The manual publish workflow re-runs checks and writes the `NPM_TOKEN` only to the ephemeral runner's pnpm config.
 - Create a tagged release only after a real Azure tenant/model smoke test is performed by the maintainer.

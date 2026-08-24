@@ -1,10 +1,10 @@
 {
   "name": "pi-foundry-auth",
   "version": "0.1.0",
-  "private": true,
   "description": "Security-first Microsoft Entra ID provider extension for pi and Azure AI Foundry.",
   "license": "MIT",
   "type": "module",
+  "packageManager": "pnpm@11.1.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/WGB5445/pi-foundry-auth.git"
@@ -12,6 +12,10 @@
   "homepage": "https://github.com/WGB5445/pi-foundry-auth",
   "bugs": {
     "url": "https://github.com/WGB5445/pi-foundry-auth/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "engines": {
     "node": ">=22"
@@ -44,8 +48,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test",
-    "pack:check": "npm pack --dry-run"
+    "check": "pnpm run typecheck && pnpm test",
+    "pack:check": "pnpm pack --dry-run",
+    "publish:check": "pnpm publish --dry-run --access public"
   },
   "dependencies": {
     "@azure/identity": "^4.10.0"

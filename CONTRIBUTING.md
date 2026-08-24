@@ -7,9 +7,10 @@ Thanks for helping improve pi Foundry Auth.
 Run:
 
 ```sh
-npm install
-npm run check
-npm run pack:check
+pnpm install
+pnpm check
+pnpm pack:check
+pnpm publish:check
 ```
 
 The tests must remain offline and must not require Azure credentials. Use fake token providers and local/mocked streams for new tests.
