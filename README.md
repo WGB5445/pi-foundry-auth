@@ -1,8 +1,11 @@
 # pi Foundry Auth
 
-Security-first Microsoft Entra ID authentication provider for [pi](https://pi.dev/) and Azure AI Foundry.
+[![npm version](https://img.shields.io/npm/v/pi-foundry-auth?logo=npm)](https://www.npmjs.com/package/pi-foundry-auth)
+[![CI](https://github.com/WGB5445/pi-foundry-auth/actions/workflows/ci.yml/badge.svg)](https://github.com/WGB5445/pi-foundry-auth/actions/workflows/ci.yml)
 
-The npm package is named `pi-foundry-auth` and is configured as a public package. Publishing is intentionally a manual step so a maintainer can review the exact version and tarball first.
+Security-first [pi](https://pi.dev/) provider plugin for Azure AI Foundry model deployments. It uses Microsoft Entra ID for authentication, routes requests through the OpenAI-compatible API, and never stores Azure API keys or access tokens in pi's auth storage.
+
+The public npm package is [`pi-foundry-auth`](https://www.npmjs.com/package/pi-foundry-auth). Publishing is intentionally a manual step so a maintainer can review the exact version and tarball first.
 
 This package adds an `azure-foundry` provider that uses the Azure OpenAI-compatible `/openai/v1/` route and Microsoft Entra ID. It is intended for Foundry model deployments that are usable through that route. It does not implement Foundry Agent Service, evaluations, or management APIs.
 
