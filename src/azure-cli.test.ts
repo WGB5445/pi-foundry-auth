@@ -25,6 +25,17 @@ describe("Azure CLI login helpers", () => {
         "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code ABCD-EFGH to authenticate.",
       ),
     ).toEqual({ userCode: "ABCD-EFGH", verificationUri: "https://microsoft.com/devicelogin" });
+    expect(
+      parseDeviceCodeOutput(
+        "\u001b[36mTo sign in, open the page\u001b[0m\nhttps://microsoft.com/devicelogin\n\u001b[33mEnter the code: ABCD-EFGH\u001b[0m",
+      ),
+    ).toEqual({ userCode: "ABCD-EFGH", verificationUri: "https://microsoft.com/devicelogin" });
+    expect(
+      parseDeviceCodeOutput("Enter the code ABCD-EFGH, then open https://microsoft.com/devicelogin"),
+    ).toEqual({ userCode: "ABCD-EFGH", verificationUri: "https://microsoft.com/devicelogin" });
+    expect(
+      parseDeviceCodeOutput("To sign in, open https://aka.ms/devicelogin and enter the code ABCD-EFGH"),
+    ).toEqual({ userCode: "ABCD-EFGH", verificationUri: "https://aka.ms/devicelogin" });
     expect(parseDeviceCodeOutput("Azure CLI did not print a device code")).toBeUndefined();
   });
 

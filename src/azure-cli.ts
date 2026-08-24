@@ -16,12 +16,19 @@ export interface ParsedDeviceCode {
   verificationUri: string;
 }
 
+const ANSI_ESCAPE_SEQUENCE = /\u001B(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\u001B\\))/gu;
+
 export function parseDeviceCodeOutput(output: string): ParsedDeviceCode | undefined {
-  const verificationUri = output.match(/https:\/\/microsoft\.com\/devicelogin/iu)?.[0];
+  // Azure CLI can color or split this message across stdout/stderr chunks.
+  // Normalize presentation-only characters before extracting the public
+  // device-login URL and the user-entered code independently.
+  const normalized = output.replace(ANSI_ESCAPE_SEQUENCE, "").replace(/\s+/gu, " ");
+  const verificationUri = normalized.match(/https:\/\/(?:microsoft\.com|aka\.ms)\/devicelogin\b/iu)?.[0];
   if (!verificationUri) return undefined;
 
-  const afterUri = output.slice(output.indexOf(verificationUri) + verificationUri.length);
-  const userCode = afterUri.match(/\bcode\s+([A-Z0-9]{4,}(?:-[A-Z0-9]{3,})*)\b/iu)?.[1];
+  const userCode = normalized.match(
+    /\b(?:enter\s+(?:the\s+)?|device\s+|user\s+)?code\s*[:：]?\s*([A-Z0-9]{4,}(?:-[A-Z0-9]{3,})*)\b/iu,
+  )?.[1];
   if (!userCode) return undefined;
 
   return { userCode, verificationUri };

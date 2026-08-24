@@ -1,6 +1,6 @@
 {
   "name": "pi-foundry-auth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Security-first Microsoft Entra ID provider extension for pi and Azure AI Foundry.",
   "license": "MIT",
   "type": "module",

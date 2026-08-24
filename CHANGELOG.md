@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented here.
 
+## [0.1.1]
+
+- Hardened Azure CLI device-code parsing for ANSI-colored output, split lines, flexible message ordering, and both official device-login URLs.
+
 ## [Unreleased]
 
 - Renamed the npm package and repository to `pi-foundry-auth`; the pi provider id remains `azure-foundry`.
