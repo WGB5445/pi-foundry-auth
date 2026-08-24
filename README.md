@@ -150,6 +150,7 @@ Then configure npm Trusted Publishing for GitHub Actions with:
 - Owner: `WGB5445`
 - Repository: `pi-foundry-auth`
 - Workflow filename: `publish.yml`
+- Environment: `npm-publish`
 - Allowed action: `npm publish`
 
 The recommended path is the npm web UI: open the package's **Settings → Trusted publishing** page and create a GitHub Actions publisher with the fields above. The package is already present on npm, so this configuration is now available.
