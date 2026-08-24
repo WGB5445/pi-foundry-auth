@@ -34,12 +34,16 @@
     ]
   },
   "files": [
-    "extensions",
-    "src",
+    "extensions/index.ts",
+    "src/azure-cli.ts",
+    "src/config.ts",
+    "src/credential.ts",
+    "src/login.ts",
+    "src/redaction.ts",
+    "src/stream.ts",
     "README.md",
     "DESIGN.md",
     "SECURITY.md",
-    "CONTRIBUTING.md",
     "CHANGELOG.md",
     "LICENSE",
     "package.json"
