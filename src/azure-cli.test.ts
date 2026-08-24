@@ -47,7 +47,7 @@ describe("Azure CLI login helpers", () => {
     try {
       writeFileSync(
         executable,
-        "#!/bin/sh\nprintf '%s\\n' 'To sign in, open https://microsoft.com/devicelogin and enter the code ABCD-EFGH'\n",
+        "#!/bin/sh\ntest \"$AZURE_CORE_ONLY_SHOW_ERRORS\" = \"false\"\ntest \"$AZURE_CORE_NO_COLOR\" = \"true\"\nprintf '%s\\n' 'To sign in, open https://microsoft.com/devicelogin and enter the code ABCD-EFGH'\n",
       );
       chmodSync(executable, 0o700);
       await runAzureCliLogin(

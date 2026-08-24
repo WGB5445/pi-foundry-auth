@@ -1,6 +1,14 @@
 import { spawn } from "node:child_process";
 
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
+const AZURE_CLI_LOGIN_ENV = {
+  // Azure CLI can hide the device-code warning when the user's global
+  // `core.only_show_errors` setting is enabled. Override it only for this
+  // child process; never mutate the user's Azure CLI configuration.
+  AZURE_CORE_ONLY_SHOW_ERRORS: "false",
+  // Make parsing deterministic when Azure CLI is attached to a TUI pipe.
+  AZURE_CORE_NO_COLOR: "true",
+};
 
 export interface AzureCliLoginCallbacks {
   onDeviceCode?: (params: {
@@ -62,6 +70,7 @@ export function runAzureCliLogin(
       child = spawn(executable, args, {
         shell: false,
         windowsHide: true,
+        env: { ...process.env, ...AZURE_CLI_LOGIN_ENV },
         stdio: ["ignore", "pipe", "pipe"],
       });
     } catch {
