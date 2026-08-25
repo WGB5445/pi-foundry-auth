@@ -23,6 +23,7 @@ export function isLoginMarker(credentials: OAuthCredentials): boolean {
 
 export interface LoginDependencies {
   tokenProvider: TokenProvider;
+  onAuthenticated?: (callbacks: OAuthLoginCallbacks) => Promise<void> | void;
 }
 
 async function verifyCredential(callbacks: OAuthLoginCallbacks, tokenProvider: TokenProvider): Promise<void> {
@@ -53,6 +54,7 @@ export function createAzureFoundryOAuth(config: FoundryConfig, dependencies: Log
       }
 
       await verifyCredential(callbacks, dependencies.tokenProvider);
+      await dependencies.onAuthenticated?.(callbacks);
       return createLoginMarker();
     },
 

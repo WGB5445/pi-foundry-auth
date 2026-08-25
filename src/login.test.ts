@@ -31,7 +31,8 @@ describe("Azure Foundry login", () => {
   it("verifies an existing Azure credential without storing its token", async () => {
     const getToken = vi.fn(async () => "eyJ.fake.token");
     const ui = callbacks("existing");
-    const oauth = createAzureFoundryOAuth(config, { tokenProvider: { getToken } });
+    const onAuthenticated = vi.fn();
+    const oauth = createAzureFoundryOAuth(config, { tokenProvider: { getToken }, onAuthenticated });
 
     const credentials = await oauth.login(ui);
 
@@ -39,6 +40,7 @@ describe("Azure Foundry login", () => {
     expect(credentials.access).toBe(LOGIN_MARKER);
     expect(credentials.refresh).toBe(LOGIN_MARKER);
     expect(credentials.access).not.toContain("eyJ");
+    expect(onAuthenticated).toHaveBeenCalledOnce();
   });
 
   it("uses direct Azure Identity device-code login when selected", async () => {

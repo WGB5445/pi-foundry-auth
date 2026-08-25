@@ -37,6 +37,7 @@
     "extensions/index.ts",
     "src/config.ts",
     "src/credential.ts",
+    "src/discovery.ts",
     "src/login.ts",
     "src/redaction.ts",
     "src/stream.ts",

@@ -6,6 +6,7 @@ All notable changes to this project will be documented here.
 
 - Replaced fragile Azure CLI device-code output parsing with Azure Identity's direct `DeviceCodeCredential` callback flow; existing credentials still use `DefaultAzureCredential`.
 - Added optional tenant-scoped Entra App Registration `clientId` configuration for direct device-code login.
+- Added authenticated Azure AI Foundry `/openai/v1/models` discovery after login and the `/azure-foundry-models` refresh command.
 
 ## [Unreleased]
 
