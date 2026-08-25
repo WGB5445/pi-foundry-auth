@@ -22,6 +22,7 @@ export type DeviceCodeCredentialFactory = (
 const defaultDeviceCodeCredentialFactory: DeviceCodeCredentialFactory = (config, callbacks) =>
   new DeviceCodeCredential({
     ...(config.tenantId ? { tenantId: config.tenantId } : {}),
+    ...(config.clientId ? { clientId: config.clientId } : {}),
     userPromptCallback: ({ userCode, verificationUri }) => callbacks.onDeviceCode({ userCode, verificationUri }),
   });
 
@@ -42,7 +43,7 @@ export function createTokenProvider(
 ): TokenProvider {
   let deviceCodeCredential: { configKey: string; credential: TokenCredential } | undefined;
 
-  const configKey = () => `${config.tenantId ?? ""}\u0000${config.scope}`;
+  const configKey = () => `${config.tenantId ?? ""}\u0000${config.clientId ?? ""}\u0000${config.scope}`;
   const defaultCredential = (key: string) => {
     if (!cachedCredential || cachedCredential.factory !== factory || cachedCredential.configKey !== key) {
       cachedCredential = { factory, configKey: key, credential: factory(config) };

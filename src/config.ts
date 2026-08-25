@@ -35,6 +35,7 @@ export interface FoundryConfig {
   endpoint?: string;
   models: FoundryModelConfig[];
   tenantId?: string;
+  clientId?: string;
   scope: string;
   allowCustomEndpoint: boolean;
 }
@@ -54,6 +55,7 @@ interface RawConfig {
   resource?: unknown;
   models?: unknown;
   tenantId?: unknown;
+  clientId?: unknown;
   scope?: unknown;
   allowCustomEndpoint?: unknown;
 }
@@ -173,6 +175,14 @@ function validateTenantId(value: string | undefined): string | undefined {
   return value;
 }
 
+function validateClientId(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(value)) {
+    throw new Error("clientId must be a valid Microsoft Entra application ID");
+  }
+  return value.toLowerCase();
+}
+
 export function validateScope(scope: string): string {
   if (!ALLOWED_SCOPES.has(scope)) {
     throw new Error(`Unsupported Azure token scope: ${scope}`);
@@ -242,11 +252,19 @@ export function loadFoundryConfig(options: ConfigLoadOptions = {}): FoundryConfi
       : undefined;
   const models = parseEnvModels(env.AZURE_FOUNDRY_MODELS) ?? parseModels(config.models);
   const tenantId = validateTenantId(readString(envOrConfig(env, config, "AZURE_FOUNDRY_TENANT_ID", "tenantId"), "tenantId"));
+  const clientId = validateClientId(readString(envOrConfig(env, config, "AZURE_FOUNDRY_CLIENT_ID", "clientId"), "clientId"));
   const scope = validateScope(
     readString(envOrConfig(env, config, "AZURE_FOUNDRY_SCOPE", "scope"), "scope") ?? DEFAULT_SCOPE,
   );
 
-  return { ...(endpoint ? { endpoint } : {}), models, ...(tenantId ? { tenantId } : {}), scope, allowCustomEndpoint };
+  return {
+    ...(endpoint ? { endpoint } : {}),
+    models,
+    ...(tenantId ? { tenantId } : {}),
+    ...(clientId ? { clientId } : {}),
+    scope,
+    allowCustomEndpoint,
+  };
 }
 
 export function configSummary(config: FoundryConfig): string {

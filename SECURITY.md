@@ -21,5 +21,7 @@ Never include access tokens, refresh tokens, API keys, tenant secrets, or privat
 
 - The extension does not persist bearer tokens or API keys.
 - The plugin does not invoke Azure CLI for interactive login or parse its output; existing Azure CLI credentials are consumed through `DefaultAzureCredential`.
+- Direct device-code login accepts an optional organization-owned Entra application `clientId` and tenant restriction; no client secret is accepted.
+- The plugin does not enable Azure Identity's persistent token-cache provider, so the direct-login credential and its token cache remain process-local.
 - Network endpoints are restricted to HTTPS Azure hosts unless an explicit custom-endpoint opt-in is set.
 - pi extensions have the same process permissions as pi itself. Only load this extension from a source you trust.

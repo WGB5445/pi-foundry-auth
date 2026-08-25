@@ -54,6 +54,7 @@ You can also use a metadata-only config file at `~/.pi/agent/azure-foundry.json`
 {
   "resource": "my-foundry-resource",
   "tenantId": "00000000-0000-0000-0000-000000000000",
+  "clientId": "00000000-0000-4000-8000-000000000000",
   "models": [
     {
       "id": "my-gpt-deployment",
@@ -75,6 +76,7 @@ Project-local `.pi/azure-foundry.json` overrides the global file. The following 
 | `AZURE_FOUNDRY_ENDPOINT` | Full `https://.../openai/v1/` endpoint |
 | `AZURE_FOUNDRY_MODELS` | Comma-separated deployment IDs |
 | `AZURE_FOUNDRY_TENANT_ID` | Optional tenant restriction |
+| `AZURE_FOUNDRY_CLIENT_ID` | Optional Entra App Registration client ID for direct device-code login |
 | `AZURE_FOUNDRY_SCOPE` | Token scope; defaults to `https://ai.azure.com/.default` |
 | `AZURE_FOUNDRY_CONFIG` | Explicit metadata config path |
 
@@ -89,6 +91,8 @@ Start pi with the extension, then use:
 ```
 
 Choose “Use an existing Azure credential” if you have already authenticated with Azure CLI, Azure Developer CLI, VS Code, environment credentials, or managed identity. Choose “Sign in with Microsoft Entra device code” to run Azure Identity's direct device-code flow inside Pi. This flow displays the verification URL and user code through Pi's login dialog; it does not start `az` or parse CLI output.
+
+For enterprise or production use, set `AZURE_FOUNDRY_CLIENT_ID` to an App Registration that your organization controls. The optional `AZURE_FOUNDRY_TENANT_ID` restricts the sign-in authority to the selected tenant. The client ID is an application identifier, not a secret; no client secret is accepted by this plugin. If no client ID is configured, Azure Identity uses its developer sign-on application for convenience, which is not the recommended production setup.
 
 If you prefer Azure CLI's own credential cache, run `az login --use-device-code` in a separate terminal first, then choose “Use an existing Azure credential”. This is the same external-credential pattern used by other Azure Foundry Pi extensions.
 
@@ -181,6 +185,7 @@ After that bootstrap release, manually run the `Publish Package` workflow from t
 - Model discovery is intentionally not automatic; model IDs are deployment-specific and are configured explicitly.
 - The plugin targets Foundry's OpenAI v1-compatible model route, not the Foundry Agent Service project API.
 - Direct device-code login keeps the Azure Identity credential in memory for the current Pi process; Pi auth storage contains only the non-secret login marker. Existing Azure CLI credentials are read through `DefaultAzureCredential`.
+- For direct device-code login, configure an organization-owned `AZURE_FOUNDRY_CLIENT_ID` and, when appropriate, `AZURE_FOUNDRY_TENANT_ID`; the plugin does not persist refresh tokens or enable a persistent token cache.
 
 ## License
 

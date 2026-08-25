@@ -86,4 +86,20 @@ describe("loadFoundryConfig", () => {
     expect(validateScope(DEFAULT_SCOPE)).toBe(DEFAULT_SCOPE);
     expect(() => validateScope("https://attacker.example/.default")).toThrow(/Unsupported/iu);
   });
+
+  it("loads and validates an explicit Entra application client ID", () => {
+    const clientId = "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE";
+    const config = loadFoundryConfig({
+      cwd: "/tmp",
+      homeDir: "/tmp/nonexistent-pi-home",
+      env: { AZURE_FOUNDRY_CLIENT_ID: clientId },
+    });
+
+    expect(config.clientId).toBe(clientId.toLowerCase());
+    expect(() => loadFoundryConfig({
+      cwd: "/tmp",
+      homeDir: "/tmp/nonexistent-pi-home",
+      env: { AZURE_FOUNDRY_CLIENT_ID: "not-a-client-id" },
+    })).toThrow(/clientId/iu);
+  });
 });

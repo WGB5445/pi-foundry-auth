@@ -14,7 +14,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 ## Runtime flow
 
 1. The extension loads metadata from environment variables or `azure-foundry.json`.
-2. It validates the endpoint, token scope, tenant value, and deployment metadata before registering the provider.
+2. It validates the endpoint, token scope, tenant value, optional Entra application client ID, and deployment metadata before registering the provider.
 3. `/login azure-foundry` either verifies the existing `DefaultAzureCredential` chain or uses Azure Identity's direct `DeviceCodeCredential` flow.
 4. pi stores only `pi-foundry-auth:azure-credential` as an OAuth marker in its normal auth storage.
 5. Before a model request, `@azure/identity` obtains a token for the configured scope.
@@ -25,7 +25,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 | Boundary | Decision |
 | --- | --- |
 | pi auth storage | Contains only a fixed marker; the plugin rejects non-marker OAuth records. |
-| Azure Identity | Owns credential selection, token refresh, and any provider-specific cache. |
+| Azure Identity | Owns credential selection and token refresh. This plugin does not enable persistent token-cache storage. |
 | Azure CLI | Used by `DefaultAzureCredential` when the user has already authenticated with `az login`; the plugin never invokes or parses Azure CLI output. |
 | Endpoint | HTTPS and `/openai/v1` are mandatory; Azure host suffixes are required unless an explicit custom-endpoint opt-in is set. |
 | Model metadata | Deployment IDs are length-limited and reject CR/LF; request serialization is delegated to pi's OpenAI implementation. |
@@ -38,7 +38,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 - **SSRF/token forwarding:** arbitrary hosts require an explicit opt-in; standard configurations accept only Azure Foundry/Azure OpenAI suffixes.
 - **Token leakage through auth.json:** only a constant marker is returned from the pi OAuth adapter.
 - **Token leakage through errors:** provider credential errors and downstream stream error messages are redacted before reaching pi.
-- **Cross-tenant credential reuse:** cached credential instances are keyed by tenant and scope.
+- **Cross-tenant/client credential reuse:** cached credential instances are keyed by tenant, client ID, and scope; direct device-code credentials are retained only by the current provider instance.
 - **Stale or incorrect model assumptions:** models are configured explicitly because Foundry deployment names are user-defined.
 
 ## Verification gates

@@ -3,7 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_SCOPE, type FoundryConfig } from "./config.js";
 import { createTokenProvider, resetCredentialCache } from "./credential.js";
 
-const config: FoundryConfig = { models: [], scope: DEFAULT_SCOPE, allowCustomEndpoint: false };
+const config: FoundryConfig = {
+  models: [],
+  scope: DEFAULT_SCOPE,
+  allowCustomEndpoint: false,
+  clientId: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+};
 const FAKE_JWT = [
   ["e", "y", "Jaaaaaaaaaaaa"].join(""),
   ["e", "y", "Jbbbbbbbbbbbbb"].join(""),
@@ -54,7 +59,8 @@ describe("token provider", () => {
     const provider = createTokenProvider(
       config,
       () => ({ getToken: vi.fn() }),
-      (_config, callbacks) => {
+      (deviceConfig, callbacks) => {
+        expect(deviceConfig.clientId).toBe(config.clientId);
         callbacks.onDeviceCode({
           userCode: "ABCD-EFGH",
           verificationUri: "https://microsoft.com/devicelogin",
