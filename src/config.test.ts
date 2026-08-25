@@ -113,6 +113,8 @@ describe("loadFoundryConfig", () => {
         'resource = "atlas-resource"',
         'tenant_id = "organizations"',
         'client_id = "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE"',
+        'subscription_id = "11111111-1111-4111-8111-111111111111"',
+        'resource_group = "atlas-rg"',
         "auth = \"entra\"",
       ].join("\n"));
 
@@ -121,8 +123,34 @@ describe("loadFoundryConfig", () => {
       expect(config.endpoint).toBe("https://atlas-resource.openai.azure.com/openai/v1/");
       expect(config.tenantId).toBe("organizations");
       expect(config.clientId).toBe("aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee");
+      expect(config.subscriptionId).toBe("11111111-1111-4111-8111-111111111111");
+      expect(config.resourceGroup).toBe("atlas-rg");
     } finally {
       rmSync(homeDir, { recursive: true, force: true });
     }
+  });
+
+  it("validates ARM deployment coordinates", () => {
+    expect(loadFoundryConfig({
+      cwd: "/tmp",
+      homeDir: "/tmp/nonexistent-pi-home",
+      env: {
+        AZURE_FOUNDRY_SUBSCRIPTION_ID: "11111111-1111-4111-8111-111111111111",
+        AZURE_FOUNDRY_RESOURCE_GROUP: "foundry-rg",
+      },
+    })).toMatchObject({
+      subscriptionId: "11111111-1111-4111-8111-111111111111",
+      resourceGroup: "foundry-rg",
+    });
+    expect(() => loadFoundryConfig({
+      cwd: "/tmp",
+      homeDir: "/tmp/nonexistent-pi-home",
+      env: { AZURE_FOUNDRY_SUBSCRIPTION_ID: "not-a-subscription" },
+    })).toThrow(/subscriptionId/iu);
+    expect(() => loadFoundryConfig({
+      cwd: "/tmp",
+      homeDir: "/tmp/nonexistent-pi-home",
+      env: { AZURE_FOUNDRY_RESOURCE_GROUP: "unsafe/group" },
+    })).toThrow(/resourceGroup/iu);
   });
 });

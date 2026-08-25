@@ -1,6 +1,6 @@
 import { DefaultAzureCredential, DeviceCodeCredential, type TokenCredential } from "@azure/identity";
 
-import type { FoundryConfig } from "./config.js";
+import { ALLOWED_SCOPES, MANAGEMENT_SCOPE, type FoundryConfig } from "./config.js";
 import { redactSecrets } from "./redaction.js";
 
 export type CredentialFactory = (config: FoundryConfig) => TokenCredential;
@@ -28,6 +28,7 @@ const defaultDeviceCodeCredentialFactory: DeviceCodeCredentialFactory = (config,
 
 export interface TokenProvider {
   getToken(signal?: AbortSignal): Promise<string>;
+  getTokenForScope?(scope: string, signal?: AbortSignal): Promise<string>;
   loginWithDeviceCode?(callbacks: DeviceCodeLoginCallbacks, signal?: AbortSignal): Promise<void>;
 }
 
@@ -51,12 +52,12 @@ export function createTokenProvider(
     return cachedCredential.credential;
   };
 
-  const requestToken = async (credential: TokenCredential, signal?: AbortSignal): Promise<string> => {
+  const requestToken = async (credential: TokenCredential, scope: string, signal?: AbortSignal): Promise<string> => {
     if (signal?.aborted) throw new DOMException("The operation was aborted", "AbortError");
 
     try {
       const accessToken = await credential.getToken(
-        config.scope,
+        scope,
         signal ? { abortSignal: signal } : undefined,
       );
       if (!accessToken?.token) throw new Error("Azure credential returned no access token");
@@ -73,7 +74,19 @@ export function createTokenProvider(
       const credential = deviceCodeCredential?.configKey === key
         ? deviceCodeCredential.credential
         : defaultCredential(key);
-      return requestToken(credential, signal);
+      return requestToken(credential, config.scope, signal);
+    },
+
+    async getTokenForScope(scope, signal) {
+      if (!scope.trim()) throw new Error("Azure token scope must not be empty");
+      if (scope !== MANAGEMENT_SCOPE && !ALLOWED_SCOPES.has(scope)) {
+        throw new Error(`Unsupported Azure token scope: ${scope}`);
+      }
+      const key = configKey();
+      const credential = deviceCodeCredential?.configKey === key
+        ? deviceCodeCredential.credential
+        : defaultCredential(key);
+      return requestToken(credential, scope, signal);
     },
 
     async loginWithDeviceCode(callbacks, signal) {
@@ -81,7 +94,7 @@ export function createTokenProvider(
       const credential = deviceCodeFactory(config, callbacks);
       // Keep the interactive credential in memory only. It is never copied
       // into pi auth storage or written to disk by this plugin.
-      await requestToken(credential, signal);
+      await requestToken(credential, config.scope, signal);
       deviceCodeCredential = { configKey: configKey(), credential };
     },
   };

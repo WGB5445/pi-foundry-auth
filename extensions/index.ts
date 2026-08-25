@@ -9,7 +9,7 @@ import {
   configSummary,
 } from "../src/config.js";
 import { createTokenProvider } from "../src/credential.js";
-import { discoverFoundryModels, mergeFoundryModels } from "../src/discovery.js";
+import { canDiscoverFoundryDeployments, discoverFoundryDeployments, discoverFoundryModels, mergeFoundryModels } from "../src/discovery.js";
 import { createAzureFoundryOAuth } from "../src/login.js";
 import { streamAzureFoundry } from "../src/stream.js";
 
@@ -31,6 +31,8 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
 
   const tokenProvider = createTokenProvider(config);
   const configuredModels = config.models;
+  const useArmDiscovery = (): boolean => canDiscoverFoundryDeployments(config);
+  let discoverySource: "arm" | "catalog" | undefined;
   let discoveryInFlight: Promise<FoundryConfig["models"]> | undefined;
 
   const registerProvider = (models: FoundryConfig["models"]): void => {
@@ -47,9 +49,14 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
 
   const refreshModels = (signal?: AbortSignal): Promise<FoundryConfig["models"]> => {
     if (discoveryInFlight) return discoveryInFlight;
-    discoveryInFlight = discoverFoundryModels(config, tokenProvider, { ...(signal ? { signal } : {}) })
+    const useArm = useArmDiscovery();
+    const discovery = useArm
+      ? discoverFoundryDeployments
+      : discoverFoundryModels;
+    discoveryInFlight = discovery(config, tokenProvider, { ...(signal ? { signal } : {}) })
       .then((discovered) => {
         const models = mergeFoundryModels(configuredModels, discovered);
+        discoverySource = useArm ? "arm" : "catalog";
         config = { ...config, models };
         registerProvider(models);
         return models;
@@ -66,10 +73,15 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
       try {
         const models = await refreshModels(callbacks.signal);
         callbacks.onProgress?.(`Discovered ${models.length} Azure Foundry model${models.length === 1 ? "" : "s"}`);
-      } catch {
-        callbacks.onProgress?.("Model discovery was unavailable; use /azure-foundry-models to retry");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        callbacks.onProgress?.(`Model discovery was unavailable: ${message}`);
         if (config.models.length === 0) {
-          throw new Error("Azure Foundry model discovery failed; configure AZURE_FOUNDRY_MODELS or retry /azure-foundry-models");
+          throw new Error(
+            useArmDiscovery()
+              ? "Azure ARM deployment discovery failed; check subscription/resource-group permissions or retry /azure-foundry-models"
+              : "Azure Foundry catalog discovery failed; configure ARM coordinates or retry /azure-foundry-models",
+          );
         }
       }
     },
@@ -86,7 +98,8 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
       }
       try {
         const models = await refreshModels();
-        ctx.ui.notify(`Discovered ${models.length} Azure Foundry model${models.length === 1 ? "" : "s"}; use /model to select`, "info");
+        const source = discoverySource === "arm" ? "deployed" : "catalog";
+        ctx.ui.notify(`Discovered ${models.length} ${source} Azure Foundry model${models.length === 1 ? "" : "s"}; use /model to select`, "info");
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         ctx.ui.notify(message, "error");
@@ -106,12 +119,13 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
         return;
       }
       if (config.models.length === 0) {
-        ctx.ui.notify(`Endpoint configured, but no models are configured: ${configSummary(config)}`, "warning");
+        ctx.ui.notify(`Endpoint configured, but no models are loaded: ${configSummary(config)}; run /azure-foundry-models`, "warning");
         return;
       }
       try {
         await tokenProvider.getToken();
-        ctx.ui.notify(`Azure Foundry is ready: ${configSummary(config)}; token not displayed or stored`, "info");
+        const source = discoverySource === "arm" ? "ARM deployment list" : discoverySource === "catalog" ? "data-plane catalog" : "manual configuration";
+        ctx.ui.notify(`Azure Foundry is ready: ${configSummary(config)}; source: ${source}; token not displayed or stored`, "info");
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         ctx.ui.notify(`Azure Entra credential unavailable: ${message}`, "error");

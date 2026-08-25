@@ -6,7 +6,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 
 ## Explicit non-goals
 
-- Foundry Agent Service, evaluations, project management, or other management APIs.
+- Foundry Agent Service, evaluations, project management, or mutating management APIs. Read-only deployment listing is supported when ARM coordinates are configured.
 - Automatic model catalog discovery at startup.
 - Arbitrary shell commands, arbitrary HTTP endpoints, or API-key fallback.
 - Storing Azure access tokens, refresh tokens, client secrets, or API keys in pi configuration.
@@ -16,8 +16,8 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 1. The extension loads metadata from environment variables or `azure-foundry.json`.
 2. It validates the endpoint, token scope, tenant value, optional Entra application client ID, and deployment metadata before registering the provider.
 3. The provider registers any manually configured models without making a network request during startup.
-4. `/login azure-foundry` either verifies the existing `DefaultAzureCredential` chain or uses Azure Identity's direct `DeviceCodeCredential` flow; successful authentication refreshes the model catalog.
-5. `/azure-foundry-models` explicitly refreshes the model catalog using the current credential.
+4. `/login azure-foundry` either verifies the existing `DefaultAzureCredential` chain or uses Azure Identity's direct `DeviceCodeCredential` flow; successful authentication refreshes the deployment list or model catalog.
+5. `/azure-foundry-models` explicitly refreshes the authoritative ARM deployment list when configured, otherwise the data-plane model catalog.
 6. pi stores only `pi-foundry-auth:azure-credential` as an OAuth marker in its normal auth storage.
 7. Before a model request or catalog request, `@azure/identity` obtains a token for the configured scope.
 8. The token is passed in memory to the configured Azure endpoint and pi's built-in OpenAI Responses stream implementation; it is never logged or persisted by this extension.
@@ -30,7 +30,8 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 | Azure Identity | Owns credential selection and token refresh. This plugin does not enable persistent token-cache storage. |
 | Azure CLI | Used by `DefaultAzureCredential` when the user has already authenticated with `az login`; the plugin never invokes or parses Azure CLI output. |
 | Endpoint | HTTPS and `/openai/v1` are mandatory; Azure host suffixes are required unless an explicit custom-endpoint opt-in is set. |
-| Model catalog | Queried only at the configured endpoint over HTTPS with the same Entra bearer token; redirects are rejected, the response is size-limited, and obvious non-chat model families are excluded. |
+| ARM deployments | Read-only GET to `management.azure.com` using a separate management-scope token; subscription, resource group, and account segments are validated/encoded. |
+| Model catalog fallback | Queried only at the configured endpoint over HTTPS with the data-plane bearer token; redirects are rejected, the response is size-limited, and obvious non-chat model families are excluded. |
 | Model metadata | Deployment IDs are length-limited and reject CR/LF; request serialization is delegated to pi's OpenAI implementation. |
 | Diagnostics | Credential and downstream error messages are redacted for Bearer/JWT-shaped values. |
 
@@ -40,6 +41,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 - **Shell injection through tenant or CLI configuration:** the extension does not invoke a shell or build a CLI command for interactive login.
 - **SSRF/token forwarding:** arbitrary hosts require an explicit opt-in; standard configurations accept only Azure Foundry/Azure OpenAI suffixes.
 - **Catalog token forwarding:** model discovery uses the configured endpoint only, rejects HTTP redirects, and never includes response bodies in errors.
+- **Inference-token avoidance:** deployment verification uses ARM metadata and never sends a prompt or completion request.
 - **Token leakage through auth.json:** only a constant marker is returned from the pi OAuth adapter.
 - **Token leakage through errors:** provider credential errors and downstream stream error messages are redacted before reaching pi.
 - **Cross-tenant/client credential reuse:** cached credential instances are keyed by tenant, client ID, and scope; direct device-code credentials are retained only by the current provider instance.
@@ -48,7 +50,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 ## Verification gates
 
 - `pnpm typecheck`
-- `pnpm test` with fake credentials and mocked streams only
+- `pnpm test` with fake credentials, mocked ARM/catalog responses, and mocked streams only
 - `pnpm audit --prod --audit-level high`
 - `pnpm pack --dry-run`
 - pi CLI smoke test using an isolated config directory and a fake model; no Azure request

@@ -8,6 +8,7 @@ All notable changes to this project will be documented here.
 - Added optional tenant-scoped Entra App Registration `clientId` configuration for direct device-code login.
 - Added authenticated Azure AI Foundry `/openai/v1/models` discovery after login and the `/azure-foundry-models` refresh command.
 - Added Atlas `[foundry]` resource/endpoint metadata fallback and filtering for non-chat catalog entries.
+- Added ARM-first deployment verification using subscription/resource-group coordinates, with data-plane catalog fallback when those coordinates are unavailable.
 
 ## [Unreleased]
 

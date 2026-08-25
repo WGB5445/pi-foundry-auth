@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 
 export const DEFAULT_SCOPE = "https://ai.azure.com/.default";
 export const COGNITIVE_SERVICES_SCOPE = "https://cognitiveservices.azure.com/.default";
+export const MANAGEMENT_SCOPE = "https://management.azure.com/.default";
 export const ALLOWED_SCOPES = new Set([DEFAULT_SCOPE, COGNITIVE_SERVICES_SCOPE]);
 
 export const DEFAULT_PROVIDER_ID = "azure-foundry";
@@ -33,9 +34,12 @@ export interface FoundryModelConfig {
 
 export interface FoundryConfig {
   endpoint?: string;
+  resource?: string;
   models: FoundryModelConfig[];
   tenantId?: string;
   clientId?: string;
+  subscriptionId?: string;
+  resourceGroup?: string;
   scope: string;
   allowCustomEndpoint: boolean;
 }
@@ -56,6 +60,8 @@ interface RawConfig {
   models?: unknown;
   tenantId?: unknown;
   clientId?: unknown;
+  subscriptionId?: unknown;
+  resourceGroup?: unknown;
   scope?: unknown;
   allowCustomEndpoint?: unknown;
 }
@@ -65,6 +71,8 @@ interface AtlasFoundryConfig {
   endpoint?: string;
   tenantId?: string;
   clientId?: string;
+  subscriptionId?: string;
+  resourceGroup?: string;
 }
 
 export interface ConfigLoadOptions {
@@ -152,7 +160,7 @@ function readAtlasFoundryConfig(homeDir: string, env: NodeJS.ProcessEnv): AtlasF
     }
     if (!inFoundrySection || trimmed.startsWith("#")) continue;
 
-    const match = /^(resource|endpoint|tenant_id|client_id)\s*=\s*(["'])(.*?)\2(?:\s+#.*)?$/u.exec(trimmed);
+    const match = /^(resource|endpoint|tenant_id|client_id|subscription_id|resource_group)\s*=\s*(["'])(.*?)\2(?:\s+#.*)?$/u.exec(trimmed);
     if (!match) continue;
     const value = match[3]?.trim();
     if (!value) continue;
@@ -160,6 +168,8 @@ function readAtlasFoundryConfig(homeDir: string, env: NodeJS.ProcessEnv): AtlasF
     if (match[1] === "endpoint") result.endpoint = value;
     if (match[1] === "tenant_id") result.tenantId = value;
     if (match[1] === "client_id") result.clientId = value;
+    if (match[1] === "subscription_id") result.subscriptionId = value;
+    if (match[1] === "resource_group") result.resourceGroup = value;
   }
   return result;
 }
@@ -227,6 +237,22 @@ function validateClientId(value: string | undefined): string | undefined {
     throw new Error("clientId must be a valid Microsoft Entra application ID");
   }
   return value.toLowerCase();
+}
+
+function validateSubscriptionId(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(value)) {
+    throw new Error("subscriptionId must be a valid Azure subscription ID");
+  }
+  return value.toLowerCase();
+}
+
+function validateResourceGroup(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (value.length > 90 || !/^[a-z0-9._()\-]+$/iu.test(value)) {
+    throw new Error("resourceGroup contains invalid characters");
+  }
+  return value;
 }
 
 export function validateScope(scope: string): string {
@@ -298,18 +324,28 @@ export function loadFoundryConfig(options: ConfigLoadOptions = {}): FoundryConfi
     : resourceValue
       ? resourceEndpoint(resourceValue)
       : undefined;
+  const resource = resourceValue;
   const models = parseEnvModels(env.AZURE_FOUNDRY_MODELS) ?? parseModels(config.models);
   const tenantId = validateTenantId(readString(envOrConfig(env, config, "AZURE_FOUNDRY_TENANT_ID", "tenantId"), "tenantId"));
   const clientId = validateClientId(readString(envOrConfig(env, config, "AZURE_FOUNDRY_CLIENT_ID", "clientId"), "clientId"));
+  const subscriptionId = validateSubscriptionId(
+    readString(envOrConfig(env, config, "AZURE_FOUNDRY_SUBSCRIPTION_ID", "subscriptionId"), "subscriptionId"),
+  );
+  const resourceGroup = validateResourceGroup(
+    readString(envOrConfig(env, config, "AZURE_FOUNDRY_RESOURCE_GROUP", "resourceGroup"), "resourceGroup"),
+  );
   const scope = validateScope(
     readString(envOrConfig(env, config, "AZURE_FOUNDRY_SCOPE", "scope"), "scope") ?? DEFAULT_SCOPE,
   );
 
   return {
     ...(endpoint ? { endpoint } : {}),
+    ...(resource ? { resource } : {}),
     models,
     ...(tenantId ? { tenantId } : {}),
     ...(clientId ? { clientId } : {}),
+    ...(subscriptionId ? { subscriptionId } : {}),
+    ...(resourceGroup ? { resourceGroup } : {}),
     scope,
     allowCustomEndpoint,
   };

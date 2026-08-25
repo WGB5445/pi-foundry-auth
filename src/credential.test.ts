@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { DEFAULT_SCOPE, type FoundryConfig } from "./config.js";
+import { DEFAULT_SCOPE, MANAGEMENT_SCOPE, type FoundryConfig } from "./config.js";
 import { createTokenProvider, resetCredentialCache } from "./credential.js";
 
 const config: FoundryConfig = {
@@ -50,6 +50,20 @@ describe("token provider", () => {
 
     await expect(provider.getToken(controller.signal)).rejects.toThrow(/aborted/iu);
     expect(getToken).not.toHaveBeenCalled();
+  });
+
+  it("can request the ARM management scope without changing the inference scope", async () => {
+    resetCredentialCache();
+    const getToken = vi.fn(async (scope: string) => ({
+      token: scope === MANAGEMENT_SCOPE ? "management-token" : "inference-token",
+      expiresOnTimestamp: Date.now() + 60_000,
+    }));
+    const provider = createTokenProvider(config, () => ({ getToken }));
+
+    await expect(provider.getTokenForScope?.(MANAGEMENT_SCOPE)).resolves.toBe("management-token");
+    await expect(provider.getToken()).resolves.toBe("inference-token");
+    expect(getToken).toHaveBeenNthCalledWith(1, MANAGEMENT_SCOPE, undefined);
+    expect(getToken).toHaveBeenNthCalledWith(2, DEFAULT_SCOPE, undefined);
   });
 
   it("passes the device code directly to the login callback and keeps the credential in memory", async () => {
