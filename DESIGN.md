@@ -43,7 +43,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 - **Token leakage through auth.json:** only a constant marker is returned from the pi OAuth adapter.
 - **Token leakage through errors:** provider credential errors and downstream stream error messages are redacted before reaching pi.
 - **Cross-tenant/client credential reuse:** cached credential instances are keyed by tenant, client ID, and scope; direct device-code credentials are retained only by the current provider instance.
-- **Stale or incorrect model assumptions:** models are configured explicitly because Foundry deployment names are user-defined.
+- **Stale or incorrect model assumptions:** the data-plane catalog is refreshed after authentication or on demand; explicit model metadata remains available for deployment-specific capabilities and pricing.
 
 ## Verification gates
 

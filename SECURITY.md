@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes target the latest version on the default branch. This project is not published yet and should be treated as experimental until a tagged release exists.
+Security fixes target the latest version on the default branch. Published versions should be upgraded promptly when a security fix is announced.
 
 ## Reporting a vulnerability
 

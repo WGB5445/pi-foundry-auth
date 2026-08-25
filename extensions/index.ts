@@ -30,6 +30,7 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
   }
 
   const tokenProvider = createTokenProvider(config);
+  const configuredModels = config.models;
   let discoveryInFlight: Promise<FoundryConfig["models"]> | undefined;
 
   const registerProvider = (models: FoundryConfig["models"]): void => {
@@ -48,7 +49,8 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
     if (discoveryInFlight) return discoveryInFlight;
     discoveryInFlight = discoverFoundryModels(config, tokenProvider, { ...(signal ? { signal } : {}) })
       .then((discovered) => {
-        const models = mergeFoundryModels(config.models, discovered);
+        const models = mergeFoundryModels(configuredModels, discovered);
+        config = { ...config, models };
         registerProvider(models);
         return models;
       })

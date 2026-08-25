@@ -138,7 +138,7 @@ The test suite uses fake credentials and local/mocked streams; it does not conta
 
 The package uses pnpm for installation, testing, auditing, and package preparation. The final repository-based registry publish uses npm's Trusted Publishing and GitHub OIDC; it is not run automatically on every push.
 
-The one-time bootstrap release is interactive. Authenticate with npm and verify the account:
+For the initial bootstrap release, authenticate with npm and verify the account:
 
 ```sh
 npm login
@@ -154,15 +154,7 @@ pnpm publish:check
 npm publish --access public
 ```
 
-The package version must be incremented before each subsequent release. All preparation uses pnpm; the final `npm publish` command is intentional because npm Trusted Publishing authenticates the npm CLI with GitHub OIDC. No npm token is stored in the repository or workflow.
-
-For the first release, publish the package once interactively with npm account 2FA. npm requires the package to exist before a Trusted Publisher can be configured:
-
-```sh
-pnpm check
-pnpm publish:check
-npm publish --access public
-```
+The package version must be incremented before each subsequent release. All preparation uses pnpm; the final `npm publish` command is intentional because npm Trusted Publishing authenticates the npm CLI with GitHub OIDC. No npm token is stored in the repository or workflow. npm requires this initial package to exist before a Trusted Publisher can be configured.
 
 Then configure npm Trusted Publishing for GitHub Actions with:
 
