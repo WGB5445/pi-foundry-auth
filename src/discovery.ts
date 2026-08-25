@@ -4,6 +4,19 @@ import { redactSecrets } from "./redaction.js";
 
 const MAX_MODEL_RESPONSE_CHARS = 1_000_000;
 const DISCOVERY_TIMEOUT_MS = 10_000;
+const NON_CHAT_MODEL_MARKERS = [
+  "embedding",
+  "embed-",
+  "tts",
+  "whisper",
+  "dall-e",
+  "dalle",
+  "sora",
+  "realtime",
+  "audio-",
+  "transcribe",
+  "moderation",
+];
 
 export type FoundryFetch = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -21,6 +34,8 @@ function modelFromResponse(value: unknown): FoundryModelConfig | undefined {
 
   const id = value.id.trim();
   if (!id || id.length > 128 || /[\r\n]/u.test(id)) return undefined;
+  const lowerId = id.toLowerCase();
+  if (NON_CHAT_MODEL_MARKERS.some((marker) => lowerId.includes(marker))) return undefined;
 
   return {
     id,
@@ -54,7 +69,9 @@ export async function discoverFoundryModels(
   tokenProvider: TokenProvider,
   options: ModelDiscoveryOptions = {},
 ): Promise<FoundryModelConfig[]> {
-  if (!config.endpoint) throw new Error("Azure Foundry endpoint is not configured");
+  if (!config.endpoint) {
+    throw new Error("Azure Foundry endpoint is not configured; set AZURE_FOUNDRY_ENDPOINT or AZURE_FOUNDRY_RESOURCE");
+  }
 
   const signal = requestSignal(options.signal);
   try {

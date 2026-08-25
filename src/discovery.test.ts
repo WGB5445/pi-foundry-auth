@@ -22,6 +22,7 @@ describe("Azure Foundry model discovery", () => {
         data: [
           { id: "gpt-4.1", object: "model", owned_by: "azure" },
           { id: "gpt-4.1-mini", object: "model", owned_by: "azure" },
+          { id: "text-embedding-3-small", object: "model", owned_by: "azure" },
           { id: "bad\nmodel", object: "model" },
         ],
       }), { status: 200 });

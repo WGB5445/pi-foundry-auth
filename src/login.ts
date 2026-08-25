@@ -37,6 +37,9 @@ export function createAzureFoundryOAuth(config: FoundryConfig, dependencies: Log
     name: "Azure AI Foundry (Microsoft Entra ID)",
 
     async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
+      if (!config.endpoint) {
+        throw new Error("Azure Foundry endpoint is not configured; set AZURE_FOUNDRY_ENDPOINT or AZURE_FOUNDRY_RESOURCE");
+      }
       const method = await callbacks.onSelect({ message: "Azure Foundry sign-in method:", options: LOGIN_METHODS });
       if (!method) throw new Error("Azure Foundry login cancelled");
 

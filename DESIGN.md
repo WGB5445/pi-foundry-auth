@@ -30,7 +30,7 @@ Provide a pi model provider for Azure AI Foundry deployments through the OpenAI 
 | Azure Identity | Owns credential selection and token refresh. This plugin does not enable persistent token-cache storage. |
 | Azure CLI | Used by `DefaultAzureCredential` when the user has already authenticated with `az login`; the plugin never invokes or parses Azure CLI output. |
 | Endpoint | HTTPS and `/openai/v1` are mandatory; Azure host suffixes are required unless an explicit custom-endpoint opt-in is set. |
-| Model catalog | Queried only at the configured endpoint over HTTPS with the same Entra bearer token; redirects are rejected and the response is size-limited. |
+| Model catalog | Queried only at the configured endpoint over HTTPS with the same Entra bearer token; redirects are rejected, the response is size-limited, and obvious non-chat model families are excluded. |
 | Model metadata | Deployment IDs are length-limited and reject CR/LF; request serialization is delegated to pi's OpenAI implementation. |
 | Diagnostics | Credential and downstream error messages are redacted for Bearer/JWT-shaped values. |
 

@@ -102,4 +102,27 @@ describe("loadFoundryConfig", () => {
       env: { AZURE_FOUNDRY_CLIENT_ID: "not-a-client-id" },
     })).toThrow(/clientId/iu);
   });
+
+  it("uses only non-secret Foundry metadata from Atlas config as a fallback", () => {
+    const homeDir = mkdtempSync(join(tmpdir(), "pi-foundry-home-"));
+    try {
+      const atlasDir = join(homeDir, ".config", "atlas");
+      mkdirSync(atlasDir, { recursive: true });
+      writeFileSync(join(atlasDir, "config.toml"), [
+        "[foundry]",
+        'resource = "atlas-resource"',
+        'tenant_id = "organizations"',
+        'client_id = "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE"',
+        "auth = \"entra\"",
+      ].join("\n"));
+
+      const config = loadFoundryConfig({ cwd: homeDir, homeDir, env: {} });
+
+      expect(config.endpoint).toBe("https://atlas-resource.openai.azure.com/openai/v1/");
+      expect(config.tenantId).toBe("organizations");
+      expect(config.clientId).toBe("aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee");
+    } finally {
+      rmSync(homeDir, { recursive: true, force: true });
+    }
+  });
 });

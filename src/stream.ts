@@ -51,7 +51,9 @@ export function streamAzureFoundry(
 
   void (async () => {
     try {
-      if (!config.endpoint) throw new Error("Azure Foundry endpoint is not configured");
+      if (!config.endpoint) {
+        throw new Error("Azure Foundry endpoint is not configured; set AZURE_FOUNDRY_ENDPOINT or AZURE_FOUNDRY_RESOURCE");
+      }
       if (options?.signal?.aborted) throw new DOMException("The operation was aborted", "AbortError");
 
       const token = await tokenProvider.getToken(options?.signal);

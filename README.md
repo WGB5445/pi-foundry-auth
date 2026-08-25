@@ -68,6 +68,8 @@ You can also use a metadata-only config file at `~/.pi/agent/azure-foundry.json`
 }
 ```
 
+If this machine already uses Atlas, the plugin also reads only the non-secret `[foundry]` `resource`, `endpoint`, `tenant_id`, and `client_id` fields from Atlas's `config.toml` as a fallback. Plugin environment variables and `~/.pi/agent/azure-foundry.json` always take precedence. It never reads Atlas's token or keychain files.
+
 Project-local `.pi/azure-foundry.json` overrides the global file. The following environment variables override file values:
 
 | Variable | Purpose |

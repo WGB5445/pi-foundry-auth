@@ -28,6 +28,13 @@ describe("Azure Foundry login", () => {
     expect(isLoginMarker(marker)).toBe(true);
   });
 
+  it("refuses to save a login marker without a Foundry endpoint", async () => {
+    const { endpoint: _endpoint, ...noEndpointConfig } = config;
+    const oauth = createAzureFoundryOAuth(noEndpointConfig, { tokenProvider: { getToken: vi.fn() } });
+
+    await expect(oauth.login(callbacks("existing"))).rejects.toThrow(/endpoint is not configured/iu);
+  });
+
   it("verifies an existing Azure credential without storing its token", async () => {
     const getToken = vi.fn(async () => "eyJ.fake.token");
     const ui = callbacks("existing");

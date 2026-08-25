@@ -66,6 +66,9 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
         callbacks.onProgress?.(`Discovered ${models.length} Azure Foundry model${models.length === 1 ? "" : "s"}`);
       } catch {
         callbacks.onProgress?.("Model discovery was unavailable; use /azure-foundry-models to retry");
+        if (config.models.length === 0) {
+          throw new Error("Azure Foundry model discovery failed; configure AZURE_FOUNDRY_MODELS or retry /azure-foundry-models");
+        }
       }
     },
   });
@@ -97,7 +100,7 @@ export default function azureFoundryExtension(pi: ExtensionAPI): void {
         return;
       }
       if (!config.endpoint) {
-        ctx.ui.notify("Azure Foundry endpoint is not configured", "warning");
+        ctx.ui.notify("Azure Foundry endpoint is not configured; set AZURE_FOUNDRY_ENDPOINT or AZURE_FOUNDRY_RESOURCE", "warning");
         return;
       }
       if (config.models.length === 0) {

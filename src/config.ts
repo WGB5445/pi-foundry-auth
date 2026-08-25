@@ -60,6 +60,13 @@ interface RawConfig {
   allowCustomEndpoint?: unknown;
 }
 
+interface AtlasFoundryConfig {
+  resource?: string;
+  endpoint?: string;
+  tenantId?: string;
+  clientId?: string;
+}
+
 export interface ConfigLoadOptions {
   cwd?: string;
   homeDir?: string;
@@ -116,6 +123,45 @@ function mergeRawConfig(base: RawConfig, override: RawConfig): RawConfig {
   const merged: RawConfig = { ...base, ...override };
   if (base.models !== undefined && override.models === undefined) merged.models = base.models;
   return merged;
+}
+
+function readAtlasFoundryConfig(homeDir: string, env: NodeJS.ProcessEnv): AtlasFoundryConfig {
+  const configDirs = [
+    env.ATLAS_CONFIG_DIR?.trim(),
+    join(env.XDG_CONFIG_HOME?.trim() || join(homeDir, ".config"), "atlas"),
+    join(homeDir, "Library", "Application Support", "atlas"),
+  ].filter((directory): directory is string => Boolean(directory));
+
+  const configPath = configDirs.map((directory) => join(directory, "config.toml")).find(existsSync);
+  if (!configPath) return {};
+
+  let contents: string;
+  try {
+    contents = readFileSync(configPath, "utf8");
+  } catch {
+    return {};
+  }
+
+  const result: AtlasFoundryConfig = {};
+  let inFoundrySection = false;
+  for (const line of contents.split(/\r?\n/u)) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      inFoundrySection = trimmed === "[foundry]";
+      continue;
+    }
+    if (!inFoundrySection || trimmed.startsWith("#")) continue;
+
+    const match = /^(resource|endpoint|tenant_id|client_id)\s*=\s*(["'])(.*?)\2(?:\s+#.*)?$/u.exec(trimmed);
+    if (!match) continue;
+    const value = match[3]?.trim();
+    if (!value) continue;
+    if (match[1] === "resource") result.resource = value;
+    if (match[1] === "endpoint") result.endpoint = value;
+    if (match[1] === "tenant_id") result.tenantId = value;
+    if (match[1] === "client_id") result.clientId = value;
+  }
+  return result;
 }
 
 function parseModels(value: unknown): FoundryModelConfig[] {
@@ -237,9 +283,11 @@ export function loadFoundryConfig(options: ConfigLoadOptions = {}): FoundryConfi
   const explicitConfig = env.AZURE_FOUNDRY_CONFIG?.trim();
   const globalConfigPath = join(baseDir, "azure-foundry.json");
   const projectConfigPath = join(cwd, ".pi", "azure-foundry.json");
-  const config = explicitConfig
+  const pluginConfig = explicitConfig
     ? readRawConfig(resolve(cwd, explicitConfig))
     : mergeRawConfig(readRawConfig(globalConfigPath), readRawConfig(projectConfigPath));
+  const atlasConfig = explicitConfig ? {} : readAtlasFoundryConfig(options.homeDir ?? homedir(), env);
+  const config = mergeRawConfig(atlasConfig, pluginConfig);
 
   const allowCustomEndpoint =
     (env.AZURE_FOUNDRY_ALLOW_CUSTOM_ENDPOINT ?? readBoolean(config.allowCustomEndpoint, "allowCustomEndpoint")?.toString()) === "true";
