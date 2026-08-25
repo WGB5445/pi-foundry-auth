@@ -140,6 +140,12 @@ pnpm publish:check
 
 The test suite uses fake credentials and local/mocked streams; it does not contact Azure and does not require an Azure account.
 
+## Issues and feedback
+
+Issues, bug reports, documentation fixes, and feature proposals are welcome. Before opening one, please search existing issues and include the pi/package versions, Node.js version, operating system, the smallest reproducible configuration, and sanitized error output. Never include access tokens, refresh tokens, API keys, client secrets, or private endpoint details.
+
+[Open a GitHub issue](https://github.com/WGB5445/pi-foundry-auth/issues/new) or [browse existing issues](https://github.com/WGB5445/pi-foundry-auth/issues). Please use the private reporting route described in [SECURITY.md](./SECURITY.md) for suspected vulnerabilities rather than a public issue.
+
 ## Publish to npm
 
 The package uses pnpm for installation, testing, auditing, and package preparation. The final repository-based registry publish uses npm's Trusted Publishing and GitHub OIDC; it is not run automatically on every push.
@@ -181,6 +187,8 @@ npm trust github pi-foundry-auth --repo WGB5445/pi-foundry-auth --file publish.y
 ```
 
 After that bootstrap release, manually run the `Publish Package` workflow from the Actions tab. It requests only the GitHub OIDC `id-token: write` permission and has no `NPM_TOKEN` secret. npm generates provenance automatically for trusted publishes.
+
+The workflow only publishes from `main`, verifies that the package version is not already on npm, and reruns the full test/audit/package checks before publishing.
 
 ## References
 

@@ -17,6 +17,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    if: github.ref == 'refs/heads/main'
     environment:
       name: npm-publish
     steps:
@@ -25,10 +26,43 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
+          registry-url: https://registry.npmjs.org
           package-manager-cache: false
+      - name: Verify Trusted Publishing-capable npm
+        run: |
+          node --version
+          npm_version=$(npm --version)
+          echo "npm ${npm_version}"
+          node -e 'const [major, minor, patch] = process.argv[1].split(".").map(Number); if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) { console.error("npm Trusted Publishing requires npm 11.5.1 or newer"); process.exit(1); }' "${npm_version}"
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm audit --prod --audit-level high
       - run: pnpm publish:check
+      - name: Reject an already published version
+        run: |
+          set +e
+          package_name=$(node -p 'require("./package.json").name')
+          version=$(node -p 'require("./package.json").version')
+          lookup=$(npm view "${package_name}@${version}" version --registry=https://registry.npmjs.org/ 2>&1)
+          status=$?
+          set -e
+          if [ "${status}" -eq 0 ]; then
+            echo "${package_name}@${version} is already published"
+            exit 1
+          elif ! printf '%s' "${lookup}" | grep -q "E404"; then
+            printf '%s\n' "${lookup}"
+            echo "Could not verify whether ${package_name}@${version} is already published"
+            exit 1
+          fi
+      - name: Validate npm dist-tag
+        env:
+          NPM_DIST_TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "${NPM_DIST_TAG}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]]; then
+            echo "Invalid npm dist-tag: ${NPM_DIST_TAG}"
+            exit 1
+          fi
       - name: Publish with npm Trusted Publishing
-        run: npm publish --access public --tag "${{ inputs.tag }}"
+        env:
+          NPM_DIST_TAG: ${{ inputs.tag }}
+        run: npm publish --access public --tag "${NPM_DIST_TAG}"
